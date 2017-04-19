@@ -20,6 +20,7 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -49,6 +50,7 @@ import com.android.plauncher3.model.PackageItemInfo;
 import com.android.plauncher3.util.ComponentKey;
 import com.android.plauncher3.util.Thunk;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -109,6 +111,7 @@ public class IconCache {
     private Bitmap mLowResBitmap;
     private Canvas mLowResCanvas;
     private Paint mLowResPaint;
+    private SharedPreferences mSharedPrefs;
 
     public IconCache(Context context, InvariantDeviceProfile inv) {
         mContext = context;
@@ -127,6 +130,8 @@ public class IconCache {
         // automatically be loaded as ALPHA_8888.
         mLowResOptions.inPreferredConfig = Bitmap.Config.RGB_565;
         updateSystemStateString();
+        mSharedPrefs = context.getSharedPreferences(LauncherAppState.getSharedPreferencesKey(),
+                Context.MODE_PRIVATE);
     }
 
     private Drawable getFullResDefaultActivityIcon() {
@@ -145,6 +150,17 @@ public class IconCache {
     }
 
     public Drawable getFullResIcon(String packageName, int iconId) {
+        //add by panan for theme 1
+        String themeKeyname = mSharedPrefs.getString("theme_key", "default");
+        if (!themeKeyname.equals("default")) {
+            String iconpath = ThemePickerActivity.THEME_ICON_ROOT_PATH + themeKeyname + "/"
+                    + themeKeyname + "_" + convertToIconResName(packageName) + ".png";
+            if (new File(iconpath).exists()) {
+                return new FastBitmapDrawable(BitmapFactory.decodeFile(iconpath));
+            }
+
+        }
+        //add by panan for theme 1
         Resources resources;
         try {
             resources = mPackageManager.getResourcesForApplication(packageName);
@@ -160,6 +176,25 @@ public class IconCache {
     }
 
     public Drawable getFullResIcon(ActivityInfo info) {
+        //add by panan for theme 2
+        String themeKeyname = mSharedPrefs.getString("theme_key", "default");
+        String iconpath;
+        if (!themeKeyname.equals("default")) {
+            if (!themeKeyname.equals("default")) {
+                iconpath = ThemePickerActivity.THEME_ICON_ROOT_PATH + themeKeyname + "/"
+                        + themeKeyname + "_" + convertToIconResName(info.name) + ".png";
+                if (new File(iconpath).exists()) {
+                    return new FastBitmapDrawable(BitmapFactory.decodeFile(iconpath));
+                } else {
+                    iconpath = ThemePickerActivity.THEME_ICON_ROOT_PATH + themeKeyname + "/"
+                            + themeKeyname + "_" + convertToIconResName(info.packageName) + ".png";
+                }
+                if (new File(iconpath).exists()) {
+                    return new FastBitmapDrawable(BitmapFactory.decodeFile(iconpath));
+                }
+            }
+        }
+        //add by panan for theme 2
         Resources resources;
         try {
             resources = mPackageManager.getResourcesForApplication(
@@ -568,6 +603,23 @@ public class IconCache {
                 entry.contentDescription = mUserManager.getBadgedLabelForUser(entry.title, user);
             }
         }
+        //add by panan for theme 3
+        String themeKeyname = mSharedPrefs.getString("theme_key", "default");
+        String iconpath;
+        if (!themeKeyname.equals("default")) {
+            iconpath = ThemePickerActivity.THEME_ICON_ROOT_PATH + themeKeyname + "/"
+                    + themeKeyname + "_" + convertToIconResName(componentName.getClassName()) + ".png";
+            if (new File(iconpath).exists()) {
+                entry.icon = BitmapFactory.decodeFile(iconpath);
+            }else {
+                iconpath = ThemePickerActivity.THEME_ICON_ROOT_PATH + themeKeyname + "/"
+                        + themeKeyname + "_" + convertToIconResName(componentName.getPackageName()) + ".png";
+                if (new File(iconpath).exists()) {
+                    entry.icon = BitmapFactory.decodeFile(iconpath);
+                }
+            }
+        }
+        //add by panan for theme 3
         return entry;
     }
 
@@ -879,4 +931,24 @@ public class IconCache {
             return null;
         }
     }
+
+    //add by panan for theme 4
+    private String convertToIconResName(String input) {
+        return input != null && !input.equals("") ? input.replace('.', '_').toLowerCase() : input;
+    }
+
+    private Bitmap addThemeLogo(Bitmap srcBitmap) {
+        String themeKeyname = mSharedPrefs.getString("theme_key", "default");
+
+        Bitmap b2 = BitmapFactory.decodeFile(ThemePickerActivity.THEME_ICON_ROOT_PATH + themeKeyname + "/" + themeKeyname + "_icon_bg.png");
+        if (themeKeyname.equals("default") || b2 == null) {
+            return srcBitmap;
+        }
+        Bitmap b3 = Bitmap.createBitmap(srcBitmap.getWidth() + 5, srcBitmap.getHeight() + 5, srcBitmap.getConfig());
+        Canvas canvas = new Canvas(b3);
+        canvas.drawBitmap(srcBitmap, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
+        canvas.drawBitmap(b2, 0, Math.abs(srcBitmap.getHeight() - b2.getHeight()), new Paint(Paint.FILTER_BITMAP_FLAG));
+        return b3;
+    }
+    //add by panan for theme 4
 }

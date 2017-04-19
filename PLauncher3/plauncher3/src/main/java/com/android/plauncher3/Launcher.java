@@ -1225,6 +1225,13 @@ public class Launcher extends Activity
             return !Utilities.isRotationAllowedForDevice(this);
         }
     }
+//add themechange method by zhaichenglong 0414
+	protected void startChangeTheme(){
+		Intent intent =new Intent();
+		ComponentName comp = new ComponentName("com.android.plauncher3",  "com.android.plauncher3.ThemePickerActivity");
+		intent.setComponent(comp); 					
+		startActivity(intent);
+	}	
 
     public void addToCustomContentPage(View customContent,
             CustomContentCallbacks callbacks, String description) {
@@ -1426,6 +1433,16 @@ public class Launcher extends Activity
         } else {
             settingsButton.setVisibility(View.GONE);
         }
+		//add themechange method by zhaichenglong 0414
+		View ThemeChangeButton = findViewById(R.id.theme_button);
+		ThemeChangeButton.setOnClickListener(new OnClickListener(){
+			@Override
+            public void onClick(View arg0) {
+                startChangeTheme();
+            }
+		});
+		ThemeChangeButton.setOnTouchListener(getHapticFeedbackTouchListener());
+        //add code end
 
         mOverviewPanel.setAlpha(0f);
 

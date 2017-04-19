@@ -17,6 +17,7 @@
 package com.android.plauncher3;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -24,6 +25,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
+import java.io.File;
 
 public class Hotseat extends FrameLayout
         implements Stats.LaunchSourceProvider{
@@ -113,7 +116,22 @@ public class Hotseat extends FrameLayout
         LayoutInflater inflater = LayoutInflater.from(context);
         TextView allAppsButton = (TextView)
                 inflater.inflate(R.layout.all_apps_button, mContent, false);
-        Drawable d = context.getResources().getDrawable(R.drawable.all_apps_button_icon);
+        //add by panan for theme
+        Drawable d;
+        String themeKeyname = context.getSharedPreferences(LauncherAppState.getSharedPreferencesKey(),
+                Context.MODE_PRIVATE).getString("theme_key","default");
+        if (!themeKeyname.equals("default")) {
+            String iconpath = ThemePickerActivity.THEME_ICON_ROOT_PATH + themeKeyname +"/"
+                    + themeKeyname + "_all_apps.png";
+            if(new File(iconpath).exists()){
+                d = new FastBitmapDrawable(BitmapFactory.decodeFile(iconpath));
+            }else{
+                d = context.getResources().getDrawable(R.drawable.all_apps_button_icon);
+            }
+        }else {
+            //add by panan for theme
+            d = context.getResources().getDrawable(R.drawable.all_apps_button_icon);
+        }
 
         mLauncher.resizeIconDrawable(d);
         allAppsButton.setCompoundDrawables(null, d, null, null);
